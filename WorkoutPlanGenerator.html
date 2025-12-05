@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4-Week Workout Plan Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0a0b;
+      --bg-secondary: #141417;
+      --bg-tertiary: #1c1c21;
+      --border: #2a2a32;
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #22c55e;
+      --accent-dim: #16a34a;
+      --accent-glow: rgba(34, 197, 94, 0.15);
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .form-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .client-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    input, select {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      color: var(--text-primary);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    input[type="number"] {
+      width: 100%;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    .day-config {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .day-config:hover {
+      border-color: var(--accent-dim);
+    }
+
+    .day-config.rest-day {
+      opacity: 0.5;
+    }
+
+    .body-part-selector {
+      margin-bottom: 1rem;
+    }
+
+    .body-part-selector label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .body-part-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .body-part-btn {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      color: var(--text-secondary);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .body-part-btn:hover {
+      border-color: var(--accent-dim);
+      color: var(--text-primary);
+    }
+
+    .body-part-btn.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg-primary);
+      font-weight: 600;
+    }
+
+    .body-part-config {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 0.75rem;
+    }
+
+    .body-part-config-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .body-part-name {
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    .remove-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+
+    .remove-btn:hover {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: white;
+    }
+
+    .body-part-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .body-part-grid .form-group input,
+    .body-part-grid .form-group select {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .body-part-grid .form-group label {
+      font-size: 0.75rem;
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .day-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .day-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .day-grid .form-group input,
+    .day-grid .form-group select {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn:hover {
+      background: var(--accent-dim);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+      box-shadow: none;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+
+    .workout-plan {
+      margin-top: 3rem;
+    }
+
+    .workout-plan h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .plan-meta {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    .week-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .week-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px 10px 0 0;
+      padding: 1rem 1.5rem;
+    }
+
+    .week-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .week-note {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .week-content {
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+    }
+
+    .workout-day {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .workout-day:last-child {
+      border-bottom: none;
+    }
+
+    .workout-day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .workout-day-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .workout-day-info {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .rest-label {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .exercise-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .exercise-table th {
+      text-align: left;
+      padding: 0.5rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .exercise-table td {
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+
+    .exercise-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .exercise-name {
+      font-weight: 500;
+    }
+
+    .exercise-level {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .level-1 { background: #164e63; color: #67e8f9; }
+    .level-2 { background: #854d0e; color: #fde047; }
+    .level-3 { background: #7f1d1d; color: #fca5a5; }
+
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .day-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // Embedded Exercise Database (normalized body part names)
+    const exerciseDatabase = [
+      // Phase 1
+      { phase: 1, bodyPart: "Back", exercise: "Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 1, bodyPart: "Back", exercise: "Inverted Bar Row", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Back", exercise: "Single-Arm Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 1, bodyPart: "Back", exercise: "Pull-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Back", exercise: "Chest-Supported Dumbbell Row", equipment: "Dumbbell", level: 2 },
+      { phase: 1, bodyPart: "Back", exercise: "Single Arm Standing Reverse Fly", equipment: "Cable", level: 2 },
+      { phase: 1, bodyPart: "Back", exercise: "Renegade Row", equipment: "Dumbbell", level: 3 },
+      { phase: 1, bodyPart: "Back", exercise: "Chin-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 1, bodyPart: "Back", exercise: "Single-Arm Cable Row", equipment: "Cable", level: 3 },
+      { phase: 1, bodyPart: "Bicep", exercise: "Isometric Dumbbell Curl", equipment: "Dumbbell", level: 1 },
+      { phase: 1, bodyPart: "Bicep", exercise: "Single-Arm Cable Curl", equipment: "Cable", level: 1 },
+      { phase: 1, bodyPart: "Bicep", exercise: "Chin-up Hold", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Bicep", exercise: "Weighted Chin-ups (bicep focus)", equipment: "Bodyweight", level: 3 },
+      { phase: 1, bodyPart: "Chest", exercise: "Knee Push-ups", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Chest", exercise: "Push-ups", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Chest", exercise: "Ball Dumbell Chest Press", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Chest", exercise: "Diamond Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Chest", exercise: "Standing Single Cable Press", equipment: "Cable", level: 3 },
+      { phase: 1, bodyPart: "Chest", exercise: "Single Arm Dumbbell Chest Press", equipment: "Dumbbell", level: 3 },
+      { phase: 1, bodyPart: "Chest", exercise: "Feet Up Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 1, bodyPart: "Core", exercise: "Plank", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Core", exercise: "Dead Bug", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Core", exercise: "Bicycle Crunches", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Core", exercise: "Tummy Vaccuum", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Core", exercise: "Power Point", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Core", exercise: "Hanging Knee Raise", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Core", exercise: "Cable Palloff Press", equipment: "Cable", level: 2 },
+      { phase: 1, bodyPart: "Core", exercise: "Mountain Climbers", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Core", exercise: "Hollow Body Hold", equipment: "Bodyweight", level: 3 },
+      { phase: 1, bodyPart: "Core", exercise: "Dumbbell Suitcase Carry", equipment: "Dumbbell", level: 3 },
+      { phase: 1, bodyPart: "Core", exercise: "Turkish Get-Up", equipment: "Dumbbell", level: 3 },
+      { phase: 1, bodyPart: "Legs", exercise: "Bodyweight Squat", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Legs", exercise: "Bodyweight Lunge", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Legs", exercise: "Dumbbell Goblet Squat", equipment: "Dumbbell", level: 1 },
+      { phase: 1, bodyPart: "Legs", exercise: "Dumbbell Lung", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Legs", exercise: "Dumbbell Step-Ups", equipment: "Dumbbell", level: 2 },
+      { phase: 1, bodyPart: "Legs", exercise: "Dumbbell Step-Downs", equipment: "Dumbbell", level: 2 },
+      { phase: 1, bodyPart: "Legs", exercise: "Bulgarian Split Squat", equipment: "Dumbbell", level: 2 },
+      { phase: 1, bodyPart: "Legs", exercise: "Pistol Squat", equipment: "Bodyweight", level: 3 },
+      { phase: 1, bodyPart: "Legs", exercise: "Single-Leg Hip Thrust", equipment: "Bodyweight", level: 3 },
+      { phase: 1, bodyPart: "Legs", exercise: "BOSU Squats", equipment: "Bodyweight", level: 3 },
+      { phase: 1, bodyPart: "Legs", exercise: "Dumbbell Single-Leg RDLs", equipment: "Dumbbell", level: 3 },
+      { phase: 1, bodyPart: "Shoulders", exercise: "Single Arm Lateral Raises", equipment: "Dumbbell", level: 1 },
+      { phase: 1, bodyPart: "Shoulders", exercise: "Ball Dumbell Overhead Press", equipment: "Dumbbell", level: 2 },
+      { phase: 1, bodyPart: "Shoulders", exercise: "Pike Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Shoulders", exercise: "BOSU Standing Dumbell Press", equipment: "Dumbbell", level: 3 },
+      { phase: 1, bodyPart: "Shoulders", exercise: "Single-Arm Dumbbell Press", equipment: "Dumbbell", level: 3 },
+      { phase: 1, bodyPart: "Tricep", exercise: "Close-Grip Push-ups", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Tricep", exercise: "Bench Dips", equipment: "Bodyweight", level: 1 },
+      { phase: 1, bodyPart: "Tricep", exercise: "Diamond Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 1, bodyPart: "Tricep", exercise: "Single-Arm Cable Pushdown", equipment: "Cable", level: 2 },
+      { phase: 1, bodyPart: "Tricep", exercise: "Cable Single-Arm Overhead Extension", equipment: "Cable", level: 3 },
+      // Phase 2
+      { phase: 2, bodyPart: "Back", exercise: "Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Back", exercise: "Bodyweight Row", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Back", exercise: "Cable Lat Pulldown", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Back", exercise: "Reverse Dumbbell Fly Machine", equipment: "Machine", level: 1 },
+      { phase: 2, bodyPart: "Back", exercise: "Cable Seated Row", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Back", exercise: "Single-Arm Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Back", exercise: "Pull-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 2, bodyPart: "Back", exercise: "Cable Straight-Arm Pulldown", equipment: "Cable", level: 2 },
+      { phase: 2, bodyPart: "Back", exercise: "Cable Face Pulls", equipment: "Cable", level: 2 },
+      { phase: 2, bodyPart: "Back", exercise: "Chin-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Back", exercise: "Single-Arm Cable Row", equipment: "Cable", level: 3 },
+      { phase: 2, bodyPart: "Back", exercise: "Dumbbell Renegade Row", equipment: "Dumbbell", level: 3 },
+      { phase: 2, bodyPart: "Back", exercise: "Weighted Pull-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Barbell Curls", equipment: "Barbell", level: 1 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Dumbbell Curls", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Cable Curls", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Hammer Curl", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Bodyweight Bicep Curl (inverted row grip)", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Cable Rope Curl", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Barbell Preacher Curl", equipment: "Barbell", level: 2 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Dumbbell Preacher Curl", equipment: "Cable", level: 2 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Dumbbell Hammer Curls", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Reverse Barbell Curl", equipment: "Barbell", level: 2 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Dumbbell Zottman Curl", equipment: "Dumbbell", level: 3 },
+      { phase: 2, bodyPart: "Bicep", exercise: "Cable High Curl", equipment: "Cable", level: 3 },
+      { phase: 2, bodyPart: "Chest", exercise: "Push-ups", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Chest", exercise: "Dumbbell Bench Press", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Chest", exercise: "Incline Dumbbell Press", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Chest", exercise: "Cable Chest Fly", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Chest", exercise: "Decline Dumbbell Press", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Chest", exercise: "Dumbbell Pullover", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Chest", exercise: "Barbell Bench Press", equipment: "Barbell", level: 2 },
+      { phase: 2, bodyPart: "Chest", exercise: "Diamond Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 2, bodyPart: "Chest", exercise: "Dumbbell Hex Press", equipment: "Dumbbell", level: 3 },
+      { phase: 2, bodyPart: "Chest", exercise: "Single-Arm Dumbbell Press", equipment: "Cable", level: 3 },
+      { phase: 2, bodyPart: "Chest", exercise: "Archer Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Chest", exercise: "Plyometric Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Chest", exercise: "Dips", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Chest", exercise: "Deficit Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Core", exercise: "Plank", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Core", exercise: "Dead Bug", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Core", exercise: "Tummy Vaccuum", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Core", exercise: "Dumbbell Side Bend", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Core", exercise: "Bicycle Crunches", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Core", exercise: "Power Point", equipment: "Bodyweight", level: 2 },
+      { phase: 2, bodyPart: "Core", exercise: "Strict Situp", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Core", exercise: "Cable Wood Chop", equipment: "Cable", level: 2 },
+      { phase: 2, bodyPart: "Core", exercise: "Hanging Knee Raise", equipment: "Bodyweight", level: 2 },
+      { phase: 2, bodyPart: "Core", exercise: "Cable Pallof Press", equipment: "Cable", level: 2 },
+      { phase: 2, bodyPart: "Core", exercise: "Mountain Climbers", equipment: "Bodyweight", level: 2 },
+      { phase: 2, bodyPart: "Core", exercise: "Hollow Body Hold", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Core", exercise: "Dumbbell Suitcase Carry", equipment: "Dumbbell", level: 3 },
+      { phase: 2, bodyPart: "Core", exercise: "Turkish Get-Up", equipment: "Dumbbell", level: 3 },
+      { phase: 2, bodyPart: "Legs", exercise: "Bodyweight Squat", equipment: "Bodyweight", level: 1 },
+      { phase: 2, bodyPart: "Legs", exercise: "Dumbbell Goblet Squat", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Legs", exercise: "Dumbbell Lunges", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Legs", exercise: "Dumbbell Glute Bridge", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Legs", exercise: "Dumbbell Step-Ups", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Legs", exercise: "Bulgarian Split Squat", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Legs", exercise: "Back Squat", equipment: "Barbell", level: 2 },
+      { phase: 2, bodyPart: "Legs", exercise: "Dumbbell Step Ups", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Legs", exercise: "Trap Bar Deadlifts", equipment: "Barbell", level: 3 },
+      { phase: 2, bodyPart: "Legs", exercise: "Romanian Deadlifts", equipment: "Barbell", level: 3 },
+      { phase: 2, bodyPart: "Legs", exercise: "Pistol Squat", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Legs", exercise: "Single-Leg Hip Thrust", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Legs", exercise: "Dumbbell Single-Leg RDLs", equipment: "Dumbbell", level: 3 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Dumbbell Shoulder Press", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Dumbbell Lateral Raise", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Cable Front Raise", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Cable Lateral Raises", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Arnold Press", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Cable Face Pull", equipment: "Cable", level: 2 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Dumbbell Arnold Press", equipment: "Dumbbell", level: 2 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Inline Shoulder Bar Raise", equipment: "Barbell", level: 2 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Handstand Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Single-Arm Dumbbell Press", equipment: "Dumbbell", level: 3 },
+      { phase: 2, bodyPart: "Shoulders", exercise: "Overhead Barbell Press", equipment: "Barbell", level: 3 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Overhead Cable Triceps Extension", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Cable Rope Tricep Pressdown", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Dumbbell Overhead Extension", equipment: "Dumbbell", level: 1 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Cable Parellel Tricep Pushdown", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Single-Arm Cable Pushdown", equipment: "Cable", level: 1 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Close-Grip Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Bench Dips", equipment: "Bodyweight", level: 2 },
+      { phase: 2, bodyPart: "Tricep", exercise: "Cable Tricep Kickbacks", equipment: "Cable", level: 2 },
+      // Phase 3
+      { phase: 3, bodyPart: "Back", exercise: "Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Back", exercise: "Bodyweight Row", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Back", exercise: "Cable Lat Pulldown", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Back", exercise: "Reverse Dumbbell Fly Machine", equipment: "Machine", level: 1 },
+      { phase: 3, bodyPart: "Back", exercise: "Cable Seated Row", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Back", exercise: "Single-Arm Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Back", exercise: "Pull-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 3, bodyPart: "Back", exercise: "Cable Straight-Arm Pulldown", equipment: "Cable", level: 2 },
+      { phase: 3, bodyPart: "Back", exercise: "Cable Face Pulls", equipment: "Cable", level: 2 },
+      { phase: 3, bodyPart: "Back", exercise: "Chin-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Back", exercise: "Single-Arm Cable Row", equipment: "Cable", level: 3 },
+      { phase: 3, bodyPart: "Back", exercise: "Dumbbell Renegade Row", equipment: "Dumbbell", level: 3 },
+      { phase: 3, bodyPart: "Back", exercise: "Weighted Pull-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Barbell Curls", equipment: "Barbell", level: 1 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Dumbbell Curls", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Cable Curls", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Hammer Curl", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Bodyweight Bicep Curl (inverted row grip)", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Cable Rope Curl", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Barbell Preacher Curl", equipment: "Barbell", level: 2 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Dumbbell Preacher Curl", equipment: "Cable", level: 2 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Dumbbell Hammer Curls", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Reverse Barbell Curl", equipment: "Barbell", level: 2 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Dumbbell Zottman Curl", equipment: "Dumbbell", level: 3 },
+      { phase: 3, bodyPart: "Bicep", exercise: "Cable High Curl", equipment: "Cable", level: 3 },
+      { phase: 3, bodyPart: "Chest", exercise: "Push-ups", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Chest", exercise: "Dumbbell Bench Press", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Chest", exercise: "Incline Dumbbell Press", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Chest", exercise: "Cable Chest Fly", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Chest", exercise: "Decline Dumbbell Press", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Chest", exercise: "Dumbbell Pullover", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Chest", exercise: "Barbell Bench Press", equipment: "Barbell", level: 2 },
+      { phase: 3, bodyPart: "Chest", exercise: "Diamond Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 3, bodyPart: "Chest", exercise: "Dumbbell Hex Press", equipment: "Dumbbell", level: 3 },
+      { phase: 3, bodyPart: "Chest", exercise: "Single-Arm Dumbbell Press", equipment: "Cable", level: 3 },
+      { phase: 3, bodyPart: "Chest", exercise: "Archer Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Chest", exercise: "Plyometric Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Chest", exercise: "Dips", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Chest", exercise: "Deficit Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Core", exercise: "Plank", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Core", exercise: "Dead Bug", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Core", exercise: "Tummy Vaccuum", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Core", exercise: "Dumbbell Side Bend", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Core", exercise: "Bicycle Crunches", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Core", exercise: "Power Point", equipment: "Bodyweight", level: 2 },
+      { phase: 3, bodyPart: "Core", exercise: "Strict Situp", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Core", exercise: "Cable Wood Chop", equipment: "Cable", level: 2 },
+      { phase: 3, bodyPart: "Core", exercise: "Hanging Knee Raise", equipment: "Bodyweight", level: 2 },
+      { phase: 3, bodyPart: "Core", exercise: "Cable Pallof Press", equipment: "Cable", level: 2 },
+      { phase: 3, bodyPart: "Core", exercise: "Mountain Climbers", equipment: "Bodyweight", level: 2 },
+      { phase: 3, bodyPart: "Core", exercise: "Hollow Body Hold", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Core", exercise: "Dumbbell Suitcase Carry", equipment: "Dumbbell", level: 3 },
+      { phase: 3, bodyPart: "Core", exercise: "Turkish Get-Up", equipment: "Dumbbell", level: 3 },
+      { phase: 3, bodyPart: "Legs", exercise: "Bodyweight Squat", equipment: "Bodyweight", level: 1 },
+      { phase: 3, bodyPart: "Legs", exercise: "Dumbbell Goblet Squat", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Legs", exercise: "Dumbbell Lunges", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Legs", exercise: "Dumbbell Glute Bridge", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Legs", exercise: "Dumbbell Step-Ups", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Legs", exercise: "Bulgarian Split Squat", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Legs", exercise: "Back Squat", equipment: "Barbell", level: 2 },
+      { phase: 3, bodyPart: "Legs", exercise: "Dumbbell Step Ups", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Legs", exercise: "Trap Bar Deadlifts", equipment: "Barbell", level: 3 },
+      { phase: 3, bodyPart: "Legs", exercise: "Romanian Deadlifts", equipment: "Barbell", level: 3 },
+      { phase: 3, bodyPart: "Legs", exercise: "Pistol Squat", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Legs", exercise: "Single-Leg Hip Thrust", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Legs", exercise: "Dumbbell Single-Leg RDLs", equipment: "Dumbbell", level: 3 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Dumbbell Shoulder Press", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Dumbbell Lateral Raise", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Cable Front Raise", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Cable Lateral Raises", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Arnold Press", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Cable Face Pull", equipment: "Cable", level: 2 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Dumbbell Arnold Press", equipment: "Dumbbell", level: 2 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Inline Shoulder Bar Raise", equipment: "Barbell", level: 2 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Handstand Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Single-Arm Dumbbell Press", equipment: "Dumbbell", level: 3 },
+      { phase: 3, bodyPart: "Shoulders", exercise: "Overhead Barbell Press", equipment: "Barbell", level: 3 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Overhead Cable Triceps Extension", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Cable Rope Tricep Pressdown", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Dumbbell Overhead Extension", equipment: "Dumbbell", level: 1 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Cable Parellel Tricep Pushdown", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Single-Arm Cable Pushdown", equipment: "Cable", level: 1 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Close-Grip Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Bench Dips", equipment: "Bodyweight", level: 2 },
+      { phase: 3, bodyPart: "Tricep", exercise: "Cable Tricep Kickbacks", equipment: "Cable", level: 2 },
+      // Phase 4
+      { phase: 4, bodyPart: "Back", exercise: "Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Back", exercise: "Bodyweight Row", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Back", exercise: "Cable Lat Pulldown", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Back", exercise: "Reverse Dumbbell Fly Machine", equipment: "Machine", level: 1 },
+      { phase: 4, bodyPart: "Back", exercise: "Cable Seated Row", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Back", exercise: "Single-Arm Dumbbell Row", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Back", exercise: "Pull-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 4, bodyPart: "Back", exercise: "Cable Straight-Arm Pulldown", equipment: "Cable", level: 2 },
+      { phase: 4, bodyPart: "Back", exercise: "Cable Face Pulls", equipment: "Cable", level: 2 },
+      { phase: 4, bodyPart: "Back", exercise: "Chin-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Back", exercise: "Single-Arm Cable Row", equipment: "Cable", level: 3 },
+      { phase: 4, bodyPart: "Back", exercise: "Dumbbell Renegade Row", equipment: "Dumbbell", level: 3 },
+      { phase: 4, bodyPart: "Back", exercise: "Weighted Pull-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Barbell Curls", equipment: "Barbell", level: 1 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Dumbbell Curls", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Cable Curls", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Hammer Curl", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Bodyweight Bicep Curl (inverted row grip)", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Cable Rope Curl", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Barbell Preacher Curl", equipment: "Barbell", level: 2 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Dumbbell Preacher Curl", equipment: "Cable", level: 2 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Dumbbell Hammer Curls", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Reverse Barbell Curl", equipment: "Barbell", level: 2 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Dumbbell Zottman Curl", equipment: "Dumbbell", level: 3 },
+      { phase: 4, bodyPart: "Bicep", exercise: "Cable High Curl", equipment: "Cable", level: 3 },
+      { phase: 4, bodyPart: "Chest", exercise: "Push-ups", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Chest", exercise: "Dumbbell Bench Press", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Chest", exercise: "Incline Dumbbell Press", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Chest", exercise: "Cable Chest Fly", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Chest", exercise: "Decline Dumbbell Press", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Chest", exercise: "Dumbbell Pullover", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Chest", exercise: "Barbell Bench Press", equipment: "Barbell", level: 2 },
+      { phase: 4, bodyPart: "Chest", exercise: "Diamond Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 4, bodyPart: "Chest", exercise: "Dumbbell Hex Press", equipment: "Dumbbell", level: 3 },
+      { phase: 4, bodyPart: "Chest", exercise: "Single-Arm Dumbbell Press", equipment: "Cable", level: 3 },
+      { phase: 4, bodyPart: "Chest", exercise: "Archer Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Chest", exercise: "Plyometric Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Chest", exercise: "Dips", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Chest", exercise: "Deficit Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Core", exercise: "Plank", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Core", exercise: "Dead Bug", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Core", exercise: "Tummy Vaccuum", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Core", exercise: "Dumbbell Side Bend", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Core", exercise: "Bicycle Crunches", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Core", exercise: "Power Point", equipment: "Bodyweight", level: 2 },
+      { phase: 4, bodyPart: "Core", exercise: "Strict Situp", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Core", exercise: "Cable Wood Chop", equipment: "Cable", level: 2 },
+      { phase: 4, bodyPart: "Core", exercise: "Hanging Knee Raise", equipment: "Bodyweight", level: 2 },
+      { phase: 4, bodyPart: "Core", exercise: "Cable Pallof Press", equipment: "Cable", level: 2 },
+      { phase: 4, bodyPart: "Core", exercise: "Mountain Climbers", equipment: "Bodyweight", level: 2 },
+      { phase: 4, bodyPart: "Core", exercise: "Hollow Body Hold", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Core", exercise: "Dumbbell Suitcase Carry", equipment: "Dumbbell", level: 3 },
+      { phase: 4, bodyPart: "Core", exercise: "Turkish Get-Up", equipment: "Dumbbell", level: 3 },
+      { phase: 4, bodyPart: "Legs", exercise: "Bodyweight Squat", equipment: "Bodyweight", level: 1 },
+      { phase: 4, bodyPart: "Legs", exercise: "Dumbbell Goblet Squat", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Legs", exercise: "Dumbbell Lunges", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Legs", exercise: "Dumbbell Glute Bridge", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Legs", exercise: "Dumbbell Step-Ups", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Legs", exercise: "Bulgarian Split Squat", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Legs", exercise: "Back Squat", equipment: "Barbell", level: 2 },
+      { phase: 4, bodyPart: "Legs", exercise: "Dumbbell Step Ups", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Legs", exercise: "Trap Bar Deadlifts", equipment: "Barbell", level: 3 },
+      { phase: 4, bodyPart: "Legs", exercise: "Romanian Deadlifts", equipment: "Barbell", level: 3 },
+      { phase: 4, bodyPart: "Legs", exercise: "Pistol Squat", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Legs", exercise: "Single-Leg Hip Thrust", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Legs", exercise: "Dumbbell Single-Leg RDLs", equipment: "Dumbbell", level: 3 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Dumbbell Shoulder Press", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Dumbbell Lateral Raise", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Cable Front Raise", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Cable Lateral Raises", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Arnold Press", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Cable Face Pull", equipment: "Cable", level: 2 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Dumbbell Arnold Press", equipment: "Dumbbell", level: 2 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Inline Shoulder Bar Raise", equipment: "Barbell", level: 2 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Handstand Push-ups", equipment: "Bodyweight", level: 3 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Single-Arm Dumbbell Press", equipment: "Dumbbell", level: 3 },
+      { phase: 4, bodyPart: "Shoulders", exercise: "Overhead Barbell Press", equipment: "Barbell", level: 3 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Overhead Cable Triceps Extension", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Cable Rope Tricep Pressdown", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Dumbbell Overhead Extension", equipment: "Dumbbell", level: 1 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Cable Parellel Tricep Pushdown", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Single-Arm Cable Pushdown", equipment: "Cable", level: 1 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Close-Grip Push-ups", equipment: "Bodyweight", level: 2 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Bench Dips", equipment: "Bodyweight", level: 2 },
+      { phase: 4, bodyPart: "Tricep", exercise: "Cable Tricep Kickbacks", equipment: "Cable", level: 2 },
+    ];
+
+    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const BODY_PARTS = ["Chest", "Shoulders", "Back", "Bicep", "Tricep", "Core", "Legs"];
+    const PHASES = [1, 2, 3, 4];
+    const TEMPO_OPTIONS = ["Normal", "Slow", "Eccentric"];
+
+    // Utility: shuffle array
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Format date
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    // Add days to date
+    function addDays(date, days) {
+      const result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result;
+    }
+
+    // Body Part Config Component
+    function BodyPartConfig({ bodyPart, config, onChange, onRemove }) {
+      const handleChange = (field, value) => {
+        onChange({ ...config, [field]: value });
+      };
+
+      return (
+        <div className="body-part-config">
+          <div className="body-part-config-header">
+            <span className="body-part-name">{bodyPart}</span>
+            <button type="button" className="remove-btn" onClick={onRemove}>×</button>
+          </div>
+          <div className="body-part-grid">
+            <div className="form-group">
+              <label>Phase</label>
+              <select value={config.phase} onChange={(e) => handleChange('phase', parseInt(e.target.value))}>
+                {PHASES.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>L1 #</label>
+              <input type="number" min="0" max="10" value={config.level1} onChange={(e) => handleChange('level1', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="form-group">
+              <label>L2 #</label>
+              <input type="number" min="0" max="10" value={config.level2} onChange={(e) => handleChange('level2', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="form-group">
+              <label>L3 #</label>
+              <input type="number" min="0" max="10" value={config.level3} onChange={(e) => handleChange('level3', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="form-group">
+              <label>Sets</label>
+              <input type="text" value={config.sets} onChange={(e) => handleChange('sets', e.target.value)} placeholder="3" />
+            </div>
+            <div className="form-group">
+              <label>Reps</label>
+              <input type="text" value={config.reps} onChange={(e) => handleChange('reps', e.target.value)} placeholder="10-12" />
+            </div>
+            <div className="form-group">
+              <label>Tempo</label>
+              <select value={config.tempo} onChange={(e) => handleChange('tempo', e.target.value)}>
+                {TEMPO_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>RPE</label>
+              <input type="text" value={config.rpe} onChange={(e) => handleChange('rpe', e.target.value)} placeholder="7" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Day Configuration Component
+    function DayConfig({ day, config, onChange }) {
+      const isRestDay = Object.keys(config.bodyParts).length === 0;
+
+      const getDefaultBodyPartConfig = () => ({
+        phase: 2,
+        level1: 2,
+        level2: 1,
+        level3: 1,
+        sets: '3',
+        reps: '10-12',
+        tempo: 'Normal',
+        rpe: '7'
+      });
+
+      const addBodyPart = (bp) => {
+        if (!config.bodyParts[bp]) {
+          onChange(day, {
+            ...config,
+            bodyParts: {
+              ...config.bodyParts,
+              [bp]: getDefaultBodyPartConfig()
+            }
+          });
+        }
+      };
+
+      const removeBodyPart = (bp) => {
+        const newBodyParts = { ...config.bodyParts };
+        delete newBodyParts[bp];
+        onChange(day, { ...config, bodyParts: newBodyParts });
+      };
+
+      const updateBodyPart = (bp, newConfig) => {
+        onChange(day, {
+          ...config,
+          bodyParts: {
+            ...config.bodyParts,
+            [bp]: newConfig
+          }
+        });
+      };
+
+      const availableBodyParts = BODY_PARTS.filter(bp => !config.bodyParts[bp]);
+
+      return (
+        <div className={`day-config ${isRestDay ? 'rest-day' : ''}`}>
+          <div className="day-header">
+            <span className="day-name">{day}</span>
+            {isRestDay && <span className="rest-label">Rest Day</span>}
+          </div>
+          
+          <div className="body-part-selector">
+            <label>Add Body Part</label>
+            <div className="body-part-buttons">
+              {availableBodyParts.map(bp => (
+                <button
+                  key={bp}
+                  type="button"
+                  className="body-part-btn"
+                  onClick={() => addBodyPart(bp)}
+                >
+                  + {bp}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {Object.entries(config.bodyParts).map(([bp, bpConfig]) => (
+            <BodyPartConfig
+              key={bp}
+              bodyPart={bp}
+              config={bpConfig}
+              onChange={(newConfig) => updateBodyPart(bp, newConfig)}
+              onRemove={() => removeBodyPart(bp)}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    // Main App
+    function App() {
+      const [clientInfo, setClientInfo] = useState({
+        firstName: '',
+        lastName: '',
+        startDate: ''
+      });
+
+      const [dayConfigs, setDayConfigs] = useState(
+        DAYS.reduce((acc, day) => {
+          acc[day] = {
+            bodyParts: {}
+          };
+          return acc;
+        }, {})
+      );
+
+      const [generatedPlan, setGeneratedPlan] = useState(null);
+      const [error, setError] = useState('');
+
+      const handleDayChange = (day, newConfig) => {
+        setDayConfigs(prev => ({ ...prev, [day]: newConfig }));
+      };
+
+      const generatePlan = () => {
+        setError('');
+
+        if (!clientInfo.firstName || !clientInfo.lastName || !clientInfo.startDate) {
+          setError('Please fill in all client information fields.');
+          return;
+        }
+
+        const week1 = [];
+
+        for (const day of DAYS) {
+          const config = dayConfigs[day];
+          const bodyPartEntries = Object.entries(config.bodyParts);
+
+          if (bodyPartEntries.length === 0) {
+            week1.push({ day, isRest: true });
+            continue;
+          }
+
+          const allExercises = [];
+
+          for (const [bodyPart, bpConfig] of bodyPartEntries) {
+            // Filter exercises by phase and body part
+            const available = exerciseDatabase.filter(
+              ex => ex.phase === bpConfig.phase && ex.bodyPart === bodyPart
+            );
+
+            const level1Exercises = shuffleArray(available.filter(ex => ex.level === 1)).slice(0, bpConfig.level1);
+            const level2Exercises = shuffleArray(available.filter(ex => ex.level === 2)).slice(0, bpConfig.level2);
+            const level3Exercises = shuffleArray(available.filter(ex => ex.level === 3)).slice(0, bpConfig.level3);
+
+            const selectedExercises = [...level1Exercises, ...level2Exercises, ...level3Exercises].map(ex => ({
+              ...ex,
+              sets: bpConfig.sets,
+              reps: bpConfig.reps,
+              tempo: bpConfig.tempo,
+              rpe: bpConfig.rpe
+            }));
+
+            allExercises.push(...selectedExercises);
+          }
+
+          week1.push({
+            day,
+            isRest: false,
+            bodyParts: Object.keys(config.bodyParts),
+            exercises: allExercises
+          });
+        }
+
+        // Generate weeks 2-4 as copies of week 1
+        const plan = {
+          clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
+          startDate: new Date(clientInfo.startDate),
+          weeks: [
+            { weekNum: 1, days: week1, note: '' },
+            { weekNum: 2, days: week1, note: '↑ 5-10% weight increase if previous week goals met' },
+            { weekNum: 3, days: week1, note: '↑ 5-10% weight increase if previous week goals met' },
+            { weekNum: 4, days: week1, note: '↑ 5-10% weight increase if previous week goals met' }
+          ]
+        };
+
+        setGeneratedPlan(plan);
+      };
+
+      const downloadCSV = () => {
+        if (!generatedPlan) return;
+
+        const rows = [['Week', 'Date', 'Day', 'Body Part', 'Exercise', 'Phase', 'Level', 'Equipment', 'Sets', 'Reps', 'Tempo', 'RPE', 'Notes']];
+
+        generatedPlan.weeks.forEach((week, weekIndex) => {
+          week.days.forEach((dayData, dayIndex) => {
+            const date = addDays(generatedPlan.startDate, weekIndex * 7 + dayIndex);
+            const dateStr = formatDate(date);
+
+            if (dayData.isRest) {
+              rows.push([`Week ${week.weekNum}`, dateStr, dayData.day, 'REST', '', '', '', '', '', '', '', '', week.note]);
+            } else {
+              dayData.exercises.forEach((ex, exIndex) => {
+                rows.push([
+                  exIndex === 0 ? `Week ${week.weekNum}` : '',
+                  exIndex === 0 ? dateStr : '',
+                  exIndex === 0 ? dayData.day : '',
+                  ex.bodyPart,
+                  ex.exercise,
+                  ex.phase,
+                  ex.level,
+                  ex.equipment,
+                  ex.sets,
+                  ex.reps,
+                  ex.tempo,
+                  ex.rpe,
+                  exIndex === 0 ? week.note : ''
+                ]);
+              });
+            }
+          });
+        });
+
+        const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${generatedPlan.clientName.replace(/\s+/g, '_')}_4Week_Plan.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const resetForm = () => {
+        setGeneratedPlan(null);
+        setError('');
+      };
+
+      return (
+        <div className="container">
+          <header>
+            <h1>4-Week Workout Plan Generator</h1>
+            <p>Configure your weekly training split and generate a complete periodized program</p>
+          </header>
+
+          {!generatedPlan ? (
+            <>
+              {error && <div className="error-message">{error}</div>}
+
+              <div className="form-section">
+                <h2>Client Information</h2>
+                <div className="client-info-grid">
+                  <div className="form-group">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      value={clientInfo.firstName}
+                      onChange={(e) => setClientInfo(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="John"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      value={clientInfo.lastName}
+                      onChange={(e) => setClientInfo(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="Doe"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Start Date</label>
+                    <input
+                      type="date"
+                      value={clientInfo.startDate}
+                      onChange={(e) => setClientInfo(prev => ({ ...prev, startDate: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h2>Weekly Schedule</h2>
+                {DAYS.map(day => (
+                  <DayConfig
+                    key={day}
+                    day={day}
+                    config={dayConfigs[day]}
+                    onChange={handleDayChange}
+                  />
+                ))}
+              </div>
+
+              <div className="btn-group">
+                <button className="btn" onClick={generatePlan}>Generate 4-Week Plan</button>
+              </div>
+            </>
+          ) : (
+            <div className="workout-plan">
+              <h2>{generatedPlan.clientName}'s 4-Week Training Program</h2>
+              <p className="plan-meta">Starting: {formatDate(generatedPlan.startDate)}</p>
+
+              {generatedPlan.weeks.map((week, weekIndex) => (
+                <div key={week.weekNum} className="week-section">
+                  <div className="week-header">
+                    <span className="week-title">Week {week.weekNum}</span>
+                    {week.note && <span className="week-note">{week.note}</span>}
+                  </div>
+                  <div className="week-content">
+                    {week.days.map((dayData, dayIndex) => {
+                      const date = addDays(generatedPlan.startDate, weekIndex * 7 + dayIndex);
+                      return (
+                        <div key={dayData.day} className="workout-day">
+                          <div className="workout-day-header">
+                            <span className="workout-day-name">{dayData.day}</span>
+                            <span className="workout-day-info">{formatDate(date)}</span>
+                          </div>
+                          {dayData.isRest ? (
+                            <p className="rest-label">Rest Day</p>
+                          ) : (
+                            <>
+                              <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                {dayData.bodyParts.join(', ')}
+                              </p>
+                              <table className="exercise-table">
+                                <thead>
+                                  <tr>
+                                    <th>Body Part</th>
+                                    <th>Exercise</th>
+                                    <th>Phase</th>
+                                    <th>Level</th>
+                                    <th>Equipment</th>
+                                    <th>Sets</th>
+                                    <th>Reps</th>
+                                    <th>Tempo</th>
+                                    <th>RPE</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {dayData.exercises.map((ex, i) => (
+                                    <tr key={i}>
+                                      <td>{ex.bodyPart}</td>
+                                      <td className="exercise-name">{ex.exercise}</td>
+                                      <td>{ex.phase}</td>
+                                      <td><span className={`exercise-level level-${ex.level}`}>L{ex.level}</span></td>
+                                      <td>{ex.equipment}</td>
+                                      <td>{ex.sets}</td>
+                                      <td>{ex.reps}</td>
+                                      <td>{ex.tempo}</td>
+                                      <td>{ex.rpe}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              <div className="btn-group">
+                <button className="btn" onClick={downloadCSV}>Download CSV</button>
+                <button className="btn btn-secondary" onClick={resetForm}>Create New Plan</button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
